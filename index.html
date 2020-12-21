@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>3D Test</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				background:#afd9e7;
+				padding:0;
+				margin:0;
+				font-weight: bold;
+				overflow:hidden;
+			}
+		</style>
+	</head>
+	<body>
+
+		<script src="http://sites.google.com/site/baterpruf/three/three.min.js"></script>
+
+
+		<script>
+
+			var container;
+
+			var camera, scene, renderer;
+
+			var geometry, group;
+
+			var mouseX = 0, mouseY = 0;
+
+			var windowHalfX = window.innerWidth ;
+			var windowHalfY = window.innerHeight ;
+			var quantity;
+
+			document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+			document.addEventListener( 'click', onDocumentMouseClick, false );
+
+			init();
+			animate();
+
+			function init() {
+
+				container = document.createElement( 'div' );
+				document.body.appendChild( container );
+
+				camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 10000 );
+				camera.position.z=900;
+
+				scene = new THREE.Scene();
+
+
+				group = new THREE.Object3D();
+				
+				fillGroup();
+
+				scene.add( group );
+
+				renderer = new THREE.CanvasRenderer();
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				renderer.sortObjects = false;
+				container.appendChild( renderer.domElement );
+
+				window.addEventListener( 'resize', onWindowResize, false );
+
+			}
+			
+			function fillGroup(){
+				quantity=parseInt(prompt("Cantidad? \n Entre 1 y n \n Warning: Valores demasiado altos pueden saturar tu PC"));
+				
+				cubeSize=100*3/quantity;
+				spacing=cubeSize*1.5;
+				offset=(quantity-1)/2
+				var geometry = new THREE.CubeGeometry( cubeSize, cubeSize, cubeSize );
+				var material = new THREE.MeshNormalMaterial( { overdraw:true } );
+				for ( var i = 0; i < quantity; i ++ ) {
+					for (var j = 0; j < quantity; j ++ ) {
+						for (var k = 0; k < quantity; k ++ ) {
+							var mesh = new THREE.Mesh( geometry, material );
+							mesh.position.set((i-offset)*spacing, (j-offset)*spacing, (k-offset)*spacing);
+							mesh.matrixAutoUpdate = false;
+							mesh.updateMatrix();
+							group.add( mesh );
+						}
+					}
+				}
+			}
+
+			function onWindowResize() {
+
+				windowHalfX = window.innerWidth / 2;
+				windowHalfY = window.innerHeight / 2;
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
+
+			function onDocumentMouseMove(event) {
+
+				mouseX = ( event.clientX - windowHalfX ) * 10;
+				mouseY = ( event.clientY - windowHalfY ) * 10;
+
+			}
+			
+			function onDocumentMouseClick(event) {
+				
+				descendants=group.getDescendants();
+				for(i=0;i<quantity;i++){
+					if(descendants.length){
+						randomNumber=parseInt(Math.random()*descendants.length);
+						selected=descendants[randomNumber];
+						group.remove(selected);
+					}else{
+						fillGroup();
+						break;
+					}
+				}
+			
+			};
+
+			//
+
+			function animate() {
+
+				requestAnimationFrame( animate );
+
+				render();
+
+			}
+
+			function render() {
+
+				camera.lookAt( scene.position );
+
+				var currentSeconds = Date.now();
+				group.rotation.x = ( mouseY*0.0014 ) % 6.28;
+				group.rotation.y = -( mouseX*0.0007  ) % 6.28;
+				group.rotation.z = 0;
+
+				renderer.render( scene, camera );
+
+			}
+
+		</script>
+
+	</body>
+</html>
